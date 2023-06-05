@@ -3,7 +3,7 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 
-const movieRouter = require("./routes/movies.js");
+const movieRouter = require("./routes/moviesRouter.js");
 
 //functions
 const { connectDb } = require("./config/db");
