@@ -18,4 +18,16 @@ const addGenre = async (req, res) => {
     }
 };
 
-module.exports = { addGenre };
+const fetchAllGenres = async (req, res) => {
+    try {
+        const genres = await Genre.find();
+        if (!genres.length) {
+            return res.status(404).json({ message: "Genres not found" });
+        }
+        return res.status(200).json({ message: "Success", genres: genres });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+module.exports = { addGenre, fetchAllGenres };
