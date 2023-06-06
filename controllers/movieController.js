@@ -1,8 +1,9 @@
-//models
-const Movie = require("../models/movieModel");
-
+//modules
 const path = require("path");
 const fs = require("fs");
+
+//models
+const Movie = require("../models/movieModel");
 
 const addMovie = async (req, res) => {
     try {
@@ -27,7 +28,6 @@ const addMovie = async (req, res) => {
         const movie = await Movie.create(newMovie);
         res.status(201).json({ message: "added new movie", movie: movie });
     } catch (error) {
-        console.log(error);
         res.status(400).json({ message: error.message });
     }
 };
@@ -40,7 +40,6 @@ const fetchMovies = async (req, res) => {
         }
         res.status(200).json({ message: "Success", moviesList: movies });
     } catch (error) {
-        console.log(error);
         res.status(400).json({ message: error.message });
     }
 };
@@ -58,31 +57,34 @@ const editMovie = async (req, res) => {
         if (newPoster) {
             const baseURL = `${req.protocol}://${req.get("host")}/images/`;
             const oldPoster = movie.poster;
-            const exactpath = oldPoster.replace(baseURL, "");
-            const imagePath = path.join(__dirname, "..", "public", "images", exactpath);
+            const oldPosterFilename = oldPoster.replace(baseURL, "");
+            const oldPosterLocationInSystem = path.join(
+                __dirname,
+                "..",
+                "public",
+                "images",
+                oldPosterFilename
+            );
 
-            if (fs.existsSync(imagePath)) {
-                fs.unlinkSync(imagePath);
+            if (fs.existsSync(oldPosterLocationInSystem)) {
+                fs.unlinkSync(oldPosterLocationInSystem);
             }
 
             const newPosterPath = baseURL + newPoster;
             movie.poster = newPosterPath;
         }
 
-        if (name) {
-            movie.name = name;
-        }
-        if (year) {
-            movie.year = year;
-        }
-        movie.rating = rating;
-        movie.leadActor = leadActor;
-        movie.genre = genre;
+        Object.assign(movie, {
+            name: name || movie.name,
+            year: year || movie.year,
+            rating: rating || movie.rating,
+            leadActor: leadActor || movie.leadActor,
+            genre: genre || movie.genre,
+        });
 
         const updatedMovie = await movie.save();
         res.status(200).json({ message: "Movie updated successfully", movie: updatedMovie });
     } catch (error) {
-        console.log(error);
         res.status(400).json({ message: error.message });
     }
 };
