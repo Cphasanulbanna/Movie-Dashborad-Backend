@@ -9,12 +9,14 @@ const {
     addGenreToMovie,
     removeGenreFromMovie,
     fetchMoviesWithGenre,
+    addGallery,
 } = require("../controllers/movieController");
 const upload = require("../middleware/uploadImage");
 
 router.get("/", fetchMovies);
 router.get("/with-genre", fetchMoviesWithGenre);
 router.post("/", upload.single("poster"), addMovie);
+router.put("/gallery", upload.array("gallery", [4]), addGallery);
 router.put("/", upload.single("poster"), editMovie);
 router.put("/add-genre", addGenreToMovie);
 router.put("/remove-genre", removeGenreFromMovie);

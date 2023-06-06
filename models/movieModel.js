@@ -25,6 +25,15 @@ const movieSchema = new mongoose.Schema(
         leadActor: {
             type: String,
         },
+        description: {
+            type: String,
+            minLength: 10,
+        },
+        gallery: [
+            {
+                type: String,
+            },
+        ],
         genre: [
             {
                 type: mongoose.Schema.Types.ObjectId,

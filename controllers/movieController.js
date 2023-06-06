@@ -83,6 +83,7 @@ const editMovie = async (req, res) => {
         const { name, year, rating, leadActor, _id } = req.body;
 
         const newPoster = req.file.filename;
+
         const movie = await Movie.findByIdAndUpdate(_id);
         if (!movie) {
             return res.status(400).json({ message: "movie not found" });
@@ -120,6 +121,34 @@ const editMovie = async (req, res) => {
 
         await movie.save();
         res.status(200).json({ message: "Movie updated successfully", movie: movie });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+const addGallery = async (req, res) => {
+    try {
+        const { _id } = req.body;
+        const images = req.files;
+        console.log(images, "+++++++++++++++++++++++++++++++++");
+        if (!_id) {
+            return res.status(400).json({ message: "id of movie is required" });
+        }
+        if (!images) {
+            return res.status(400).json({ message: "images not found" });
+        }
+        const movie = await Movie.findByIdAndUpdate(_id);
+        if (!movie) {
+            return res.status(400).json({ message: "movie not found" });
+        }
+        const baseURL = `${req.protocol}://${req.get("host")}/images/`;
+
+        images.forEach((image) => {
+            const imageURL = baseURL + image.filename;
+            movie.gallery.push(imageURL);
+        });
+        await movie.save();
+        res.status(200).json({ message: "Movie updated with gallery images", movie: movie });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
@@ -210,4 +239,5 @@ module.exports = {
     addGenreToMovie,
     removeGenreFromMovie,
     fetchMoviesWithGenre,
+    addGallery,
 };
