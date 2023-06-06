@@ -4,6 +4,7 @@ const cors = require("cors");
 require("dotenv").config();
 
 const movieRouter = require("./routes/moviesRouter.js");
+const genreRouter = require("./routes/genreRouter.js");
 
 //functions
 const { connectDb } = require("./config/db");
@@ -19,5 +20,6 @@ app.use(express.static("public"));
 connectDb();
 
 app.use("/api/movies/", movieRouter);
+app.use("/api/genres/", genreRouter);
 
 app.listen(PORT, () => console.log(`Server is running onn port: ${PORT}`));
