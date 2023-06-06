@@ -12,7 +12,10 @@ const checkAuth = (req, res, next) => {
         req.userId = tokenValid._id;
         next();
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        if (error instanceof jwt.JsonWebTokenError) {
+            return res.status(401).json({ message: "Access denied: Invalid token" });
+        }
+        res.status(500).json({ message: "Internal server error" });
     }
 };
 
