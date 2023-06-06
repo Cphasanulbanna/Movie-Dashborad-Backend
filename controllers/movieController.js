@@ -127,11 +127,11 @@ const editMovie = async (req, res) => {
 
 const addGenreToMovie = async (req, res) => {
     try {
-        const { genreId, _id } = req.body;
+        const { genreIds, _id } = req.body;
 
         const movie = await Movie.findByIdAndUpdate(
             _id,
-            { $addToSet: { genre: genreId } },
+            { $addToSet: { genre: { $each: genreIds } } },
             { new: true }
         );
         if (!movie) {
