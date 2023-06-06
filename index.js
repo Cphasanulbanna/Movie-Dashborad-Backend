@@ -5,6 +5,7 @@ require("dotenv").config();
 
 const movieRouter = require("./routes/moviesRouter.js");
 const genreRouter = require("./routes/genreRouter.js");
+const userRouter = require("./routes/userRouter");
 
 //functions
 const { connectDb } = require("./config/db");
@@ -21,5 +22,6 @@ connectDb();
 
 app.use("/api/movies/", movieRouter);
 app.use("/api/genres/", genreRouter);
+app.use("/api/auth/", userRouter);
 
 app.listen(PORT, () => console.log(`Server is running onn port: ${PORT}`));
