@@ -30,4 +30,26 @@ const fetchAllGenres = async (req, res) => {
     }
 };
 
-module.exports = { addGenre, fetchAllGenres };
+const editGenre = async (req, res) => {
+    try {
+        const { _id, title } = req.body;
+        if (!_id) {
+            return res.status(404).json({ message: "Genre id is reqquired" });
+        }
+        if (!title) {
+            return res.status(404).json({ message: "Genre name is reqquired" });
+        }
+
+        const genre = await Genre.findByIdAndUpdate(_id);
+        if (!genre) {
+            return res.status(404).json({ message: "Genre not found" });
+        }
+        const updatedGenre = (genre.title = title);
+        await genre.save();
+        return res.status(200).json({ message: "Success", genre: updatedGenre });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+module.exports = { addGenre, fetchAllGenres, editGenre };
