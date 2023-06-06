@@ -55,6 +55,7 @@ const editMovie = async (req, res) => {
         }
 
         if (newPoster) {
+            //removing imaage from device
             const baseURL = `${req.protocol}://${req.get("host")}/images/`;
             const oldPoster = movie.poster;
             const oldPosterFilename = oldPoster.replace(baseURL, "");
@@ -70,10 +71,12 @@ const editMovie = async (req, res) => {
                 fs.unlinkSync(oldPosterLocationInSystem);
             }
 
+            //updating image in db
             const newPosterPath = baseURL + newPoster;
             movie.poster = newPosterPath;
         }
 
+        //updating movie
         Object.assign(movie, {
             name: name || movie.name,
             year: year || movie.year,
@@ -96,7 +99,24 @@ const deleteMovie = async (req, res) => {
         if (!movie) {
             return res.status(404).json({ message: "Movie not found" });
         }
+        //deleting from db
         await Movie.findByIdAndDelete(_id);
+
+        //deleting from device
+        const baseURL = `${req.protocol}://${req.get("host")}/images/`;
+        const poster = movie.poster;
+        const movieFilename = poster.replace(baseURL, "");
+        const posterLocationInSystem = path.join(
+            __dirname,
+            "..",
+            "public",
+            "images",
+            movieFilename
+        );
+        if (fs.existsSync(posterLocationInSystem)) {
+            fs.unlinkSync(posterLocationInSystem);
+        }
+
         res.status(200).json({ message: "movie deleted successfully" });
     } catch (error) {
         res.status(400).json({ message: error.message });
