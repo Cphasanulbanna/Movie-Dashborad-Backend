@@ -41,10 +41,8 @@ const addMovie = async (req, res) => {
         };
 
         const movie = await Movie.create(newMovie);
-        console.log(movie, "----------------------------------------");
         res.status(201).json({ message: "added new movie", movie: movie });
     } catch (error) {
-        // console.log(error, "**************************************************");
         res.status(400).json({ message: error.message });
     }
 };
@@ -81,7 +79,6 @@ const fetchMoviesWithGenre = async (req, res) => {
 const editMovie = async (req, res) => {
     try {
         const { name, year, rating, leadActor, _id } = req.body;
-
         const newPoster = req.file.filename;
 
         const movie = await Movie.findByIdAndUpdate(_id);
@@ -130,7 +127,6 @@ const addGallery = async (req, res) => {
     try {
         const { _id } = req.body;
         const images = req.files;
-        console.log(images, "+++++++++++++++++++++++++++++++++");
         if (!_id) {
             return res.status(400).json({ message: "id of movie is required" });
         }
