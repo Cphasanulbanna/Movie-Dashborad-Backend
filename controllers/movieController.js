@@ -49,7 +49,7 @@ const editMovie = async (req, res) => {
         const { name, year, rating, leadActor, genre, _id } = req.body;
 
         const newPoster = req.file.filename;
-        const movie = await Movie.findById(_id);
+        const movie = await Movie.findByIdAndUpdate(_id);
         if (!movie) {
             return res.status(400).json({ message: "movie not found" });
         }
@@ -82,11 +82,25 @@ const editMovie = async (req, res) => {
             genre: genre || movie.genre,
         });
 
-        const updatedMovie = await movie.save();
-        res.status(200).json({ message: "Movie updated successfully", movie: updatedMovie });
+        await movie.save();
+        res.status(200).json({ message: "Movie updated successfully", movie: movie });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
 };
 
-module.exports = { addMovie, fetchMovies, editMovie };
+const deleteMovie = async (req, res) => {
+    try {
+        const { _id } = req.body;
+        const movie = await Movie.findById(_id);
+        if (!movie) {
+            return res.status(404).json({ message: "Movie not found" });
+        }
+        await Movie.findByIdAndDelete(_id);
+        res.status(200).json({ message: "movie deleted successfully" });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+module.exports = { addMovie, fetchMovies, editMovie, deleteMovie };
