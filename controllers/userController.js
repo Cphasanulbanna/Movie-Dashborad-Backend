@@ -8,7 +8,6 @@ const { generateAccessToken } = require("../utils/jwt");
 const signup = async (req, res) => {
     try {
         const { username, password } = req.body;
-        const profilePhoto = req.file.filename;
         const baseURL = `${req.protocol}://${req.get("host")}/images/`;
 
         if (!username || !password) {
@@ -16,16 +15,22 @@ const signup = async (req, res) => {
         }
         const isExists = await User.findOne({ username: username });
         if (isExists) {
-            return res.status(400).json({ message: "AA user aalready exists with this username" });
+            return res.status(400).json({ message: "A user aalready exists with this username" });
         }
 
-        const imagePath = baseURL + profilePhoto;
         const hashedPaassword = await generatePasswordHash(password);
-        await User.create({
+
+        const newUser = {
             username: username,
             password: hashedPaassword,
-            profilePic: imagePath,
-        });
+        };
+
+        if (req.file) {
+            const imagePath = baseURL + req.file.filename;
+            newUser.profilePic = imagePath;
+        }
+
+        await User.create(newUser);
 
         return res.status(201).json({ message: "Account created successfully" });
     } catch (error) {
@@ -54,10 +59,11 @@ const login = async (req, res) => {
             message: "Login success",
             _id: user.id,
             username: user.username,
+            profile_pic: user.profilePic,
             access_token: accessToken,
         });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
 };
-module.exports = { signup };
+module.exports = { signup, login };
