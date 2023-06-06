@@ -46,7 +46,7 @@ const fetchMovies = async (req, res) => {
 
 const editMovie = async (req, res) => {
     try {
-        const { name, year, rating, leadActor, genre, _id } = req.body;
+        const { name, year, rating, leadActor, _id } = req.body;
 
         const newPoster = req.file.filename;
         const movie = await Movie.findByIdAndUpdate(_id);
@@ -82,11 +82,51 @@ const editMovie = async (req, res) => {
             year: year || movie.year,
             rating: rating || movie.rating,
             leadActor: leadActor || movie.leadActor,
-            genre: genre || movie.genre,
+            // genre: genreId || movie.genre,
         });
 
         await movie.save();
         res.status(200).json({ message: "Movie updated successfully", movie: movie });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+const addGenreToMovie = async (req, res) => {
+    try {
+        const { genreId, _id } = req.body;
+
+        const movie = await Movie.findByIdAndUpdate(
+            _id,
+            { $addToSet: { genre: genreId } },
+            { new: true }
+        );
+        if (!movie) {
+            return res.status(400).json({ message: "movie not found" });
+        }
+
+        await movie.save();
+        res.status(200).json({ message: "new genre added successfully", movie: movie });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+const removeGenreFromMovie = async (req, res) => {
+    try {
+        const { genreId, _id } = req.body;
+
+        const movie = await Movie.findByIdAndUpdate(
+            _id,
+            { $pull: { genre: genreId } },
+            { new: true }
+        );
+        if (!movie) {
+            return res.status(400).json({ message: "movie not found" });
+        }
+
+        await movie.save();
+        res.status(200).json({ message: "removed genre successfully", movie: movie });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
@@ -123,4 +163,11 @@ const deleteMovie = async (req, res) => {
     }
 };
 
-module.exports = { addMovie, fetchMovies, editMovie, deleteMovie };
+module.exports = {
+    addMovie,
+    fetchMovies,
+    editMovie,
+    deleteMovie,
+    addGenreToMovie,
+    removeGenreFromMovie,
+};
