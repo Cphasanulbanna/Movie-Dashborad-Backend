@@ -9,8 +9,23 @@ const addMovie = async (req, res) => {
     try {
         const { name, year, rating, leadActor, genre } = req.body;
         const poster = req.file.filename;
-        const isExists = await Movie.findOne({ name: name });
-        if (isExists) {
+        const existingMovie = await Movie.findOne({ name: name });
+        if (existingMovie) {
+            //removing imaage from device
+            const baseURL = `${req.protocol}://${req.get("host")}/images/`;
+            const oldPoster = existingMovie.poster;
+            const oldPosterFilename = oldPoster.replace(baseURL, "");
+            const oldPosterLocationInSystem = path.join(
+                __dirname,
+                "..",
+                "public",
+                "images",
+                oldPosterFilename
+            );
+
+            if (fs.existsSync(oldPosterLocationInSystem)) {
+                fs.unlinkSync(oldPosterLocationInSystem);
+            }
             return res.status(400).json({ message: "movie with this title already exists" });
         }
         const baseURL = `${req.protocol}://${req.get("host")}/images/`;
@@ -21,13 +36,15 @@ const addMovie = async (req, res) => {
             year: year,
             rating: rating,
             leadActor: leadActor,
-            genre: genre,
             poster: posterPath,
+            genre: genre,
         };
 
         const movie = await Movie.create(newMovie);
+        console.log(movie, "----------------------------------------");
         res.status(201).json({ message: "added new movie", movie: movie });
     } catch (error) {
+        // console.log(error, "**************************************************");
         res.status(400).json({ message: error.message });
     }
 };
@@ -35,6 +52,23 @@ const addMovie = async (req, res) => {
 const fetchMovies = async (req, res) => {
     try {
         const movies = await Movie.find();
+        if (!movies.length) {
+            return res.status(400).json({ message: "Movies not found!" });
+        }
+        res.status(200).json({ message: "Success", moviesList: movies });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+const fetchMoviesWithGenre = async (req, res) => {
+    try {
+        const movies = await Movie.find()
+            .where("genre")
+            .ne([])
+            .select("name year rating poster leadActor genre")
+            .populate("genre");
+
         if (!movies.length) {
             return res.status(400).json({ message: "Movies not found!" });
         }
@@ -82,7 +116,6 @@ const editMovie = async (req, res) => {
             year: year || movie.year,
             rating: rating || movie.rating,
             leadActor: leadActor || movie.leadActor,
-            // genre: genreId || movie.genre,
         });
 
         await movie.save();
@@ -115,6 +148,12 @@ const addGenreToMovie = async (req, res) => {
 const removeGenreFromMovie = async (req, res) => {
     try {
         const { genreId, _id } = req.body;
+        if (!_id) {
+            return res.status(400).json({ message: "Id of movie is required" });
+        }
+        if (!genreId) {
+            return res.status(400).json({ message: "Id of genre is required" });
+        }
 
         const movie = await Movie.findByIdAndUpdate(
             _id,
@@ -170,4 +209,5 @@ module.exports = {
     deleteMovie,
     addGenreToMovie,
     removeGenreFromMovie,
+    fetchMoviesWithGenre,
 };
