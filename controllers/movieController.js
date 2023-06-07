@@ -8,7 +8,9 @@ const Movie = require("../models/movieModel");
 const addMovie = async (req, res) => {
     try {
         const { name, year, rating, leadActor, genre } = req.body;
-        const poster = req.file.filename;
+        if (!name || !req.file) {
+            return res.status(400).json({ message: "Movie name & movie image is required" });
+        }
         const existingMovie = await Movie.findOne({ name: name });
         if (existingMovie) {
             //removing imaage from device
@@ -29,16 +31,19 @@ const addMovie = async (req, res) => {
             return res.status(400).json({ message: "movie with this title already exists" });
         }
         const baseURL = `${req.protocol}://${req.get("host")}/images/`;
-        const posterPath = baseURL + poster;
 
         const newMovie = {
             name: name,
             year: year,
             rating: rating,
             leadActor: leadActor,
-            poster: posterPath,
             genre: genre,
         };
+
+        if (req.file) {
+            const posterPath = baseURL + req.file.filename;
+            newMovie.poster = posterPath;
+        }
 
         const movie = await Movie.create(newMovie);
         res.status(201).json({ message: "added new movie", movie: movie });
@@ -79,14 +84,17 @@ const fetchMoviesWithGenre = async (req, res) => {
 const editMovie = async (req, res) => {
     try {
         const { name, year, rating, leadActor, _id } = req.body;
-        const newPoster = req.file.filename;
+
+        if (!_id) {
+            return res.status(400).json({ message: "movie id is required" });
+        }
 
         const movie = await Movie.findByIdAndUpdate(_id);
         if (!movie) {
             return res.status(400).json({ message: "movie not found" });
         }
 
-        if (newPoster) {
+        if (req.file) {
             //removing imaage from device
             const baseURL = `${req.protocol}://${req.get("host")}/images/`;
             const oldPoster = movie.poster;
@@ -104,7 +112,7 @@ const editMovie = async (req, res) => {
             }
 
             //updating image in db
-            const newPosterPath = baseURL + newPoster;
+            const newPosterPath = baseURL + req.file.filename;
             movie.poster = newPosterPath;
         }
 
@@ -154,6 +162,10 @@ const addGenreToMovie = async (req, res) => {
     try {
         const { genreIds, _id } = req.body;
 
+        if (!genreIds || !_id) {
+            return res.status(400).json({ message: "movie id & genre id's are required" });
+        }
+
         const movie = await Movie.findByIdAndUpdate(
             _id,
             { $addToSet: { genre: { $each: genreIds } } },
@@ -199,6 +211,9 @@ const removeGenreFromMovie = async (req, res) => {
 const deleteMovie = async (req, res) => {
     try {
         const { _id } = req.body;
+        if (!_id) {
+            return res.status(404).json({ message: "movie id is required" });
+        }
         const movie = await Movie.findById(_id);
         if (!movie) {
             return res.status(404).json({ message: "Movie not found" });
