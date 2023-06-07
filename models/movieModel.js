@@ -5,7 +5,7 @@ const movieSchema = new mongoose.Schema(
         name: {
             type: String,
             trim: true,
-            minLength: 2,
+            minLength: [2, "name should be minimum 2 chaaracter"],
             required: true,
         },
         year: {

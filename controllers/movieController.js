@@ -210,33 +210,35 @@ const removeGenreFromMovie = async (req, res) => {
 
 const deleteMovie = async (req, res) => {
     try {
-        const { _id } = req.body;
-        if (!_id) {
-            return res.status(404).json({ message: "movie id is required" });
+        const { movieIds } = req.body;
+        if (!movieIds || !Array.isArray(movieIds)) {
+            return res.status(404).json({ message: "movie Ids is required" });
         }
-        const movie = await Movie.findById(_id);
-        if (!movie) {
-            return res.status(404).json({ message: "Movie not found" });
+        const movies = await Movie.find({ _id: { $in: movieIds } });
+        if (!movies) {
+            return res.status(404).json({ message: "Movies not found" });
         }
         //deleting from db
-        await Movie.findByIdAndDelete(_id);
+        await Movie.deleteMany({ _id: { $in: movieIds } });
 
-        //deleting from device
         const baseURL = `${req.protocol}://${req.get("host")}/images/`;
-        const poster = movie.poster;
-        const movieFilename = poster.replace(baseURL, "");
-        const posterLocationInSystem = path.join(
-            __dirname,
-            "..",
-            "public",
-            "images",
-            movieFilename
-        );
-        if (fs.existsSync(posterLocationInSystem)) {
-            fs.unlinkSync(posterLocationInSystem);
-        }
+        //deleting from device
+        movies.forEach((movie) => {
+            const poster = movie.poster;
+            const movieFilename = poster.replace(baseURL, "");
+            const posterLocationInSystem = path.join(
+                __dirname,
+                "..",
+                "public",
+                "images",
+                movieFilename
+            );
+            if (fs.existsSync(posterLocationInSystem)) {
+                fs.unlinkSync(posterLocationInSystem);
+            }
+        });
 
-        res.status(200).json({ message: "movie deleted successfully" });
+        res.status(200).json({ message: "movies deleted successfully" });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }

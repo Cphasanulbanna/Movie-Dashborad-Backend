@@ -14,7 +14,7 @@ const {
 const upload = require("../middleware/uploadImage");
 const { checkAuth } = require("../middleware/checkAuth");
 
-router.get("/", checkAuth, fetchMovies);
+router.get("/", fetchMovies);
 router.get("/with-genre", fetchMoviesWithGenre);
 router.post("/", upload.single("poster"), addMovie);
 router.put("/gallery", upload.array("gallery", [4]), addGallery);
