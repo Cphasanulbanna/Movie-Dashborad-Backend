@@ -54,11 +54,24 @@ const addMovie = async (req, res) => {
 
 const fetchMovies = async (req, res) => {
     try {
-        const movies = await Movie.find();
+        const movies = await Movie.find().populate("genre");
         if (!movies.length) {
             return res.status(400).json({ message: "Movies not found!" });
         }
         res.status(200).json({ message: "Success", moviesList: movies });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+const fetchSingleMovie = async (req, res) => {
+    try {
+        const _id = req.params;
+        const movie = await Movie.findById(_id).populate("genre");
+        if (!movie) {
+            return res.status(400).json({ message: "Movie not found!" });
+        }
+        res.status(200).json({ message: "Success", movie: movie });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
@@ -253,4 +266,5 @@ module.exports = {
     removeGenreFromMovie,
     fetchMoviesWithGenre,
     addGallery,
+    fetchSingleMovie,
 };
