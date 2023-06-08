@@ -7,7 +7,7 @@ const Movie = require("../models/movieModel");
 
 const addMovie = async (req, res) => {
     try {
-        const { name, year, rating, leadActor, genre } = req.body;
+        const { name, year, rating, leadactor, genre } = req.body;
         if (!name || !req.file) {
             return res.status(400).json({ message: "Movie name & movie image is required" });
         }
@@ -36,7 +36,7 @@ const addMovie = async (req, res) => {
             name: name,
             year: year,
             rating: rating,
-            leadActor: leadActor,
+            leadactor: leadactor,
             genre: genre,
         };
 
@@ -82,7 +82,7 @@ const fetchMoviesWithGenre = async (req, res) => {
         const movies = await Movie.find()
             .where("genre")
             .ne([])
-            .select("name year rating poster leadActor genre")
+            .select("name year rating poster leadactor genre")
             .populate("genre");
 
         if (!movies.length) {
@@ -96,13 +96,19 @@ const fetchMoviesWithGenre = async (req, res) => {
 
 const editMovie = async (req, res) => {
     try {
-        const { name, year, rating, leadActor, _id } = req.body;
+        const { name, year, rating, leadactor, description, genreIds } = req.body;
+        const { _id } = req.params;
 
         if (!_id) {
             return res.status(400).json({ message: "movie id is required" });
         }
 
-        const movie = await Movie.findByIdAndUpdate(_id);
+        const movie = await Movie.findByIdAndUpdate(
+            _id,
+            _id,
+            { $addToSet: { genre: { $each: genreIds } } },
+            { new: true }
+        );
         if (!movie) {
             return res.status(400).json({ message: "movie not found" });
         }
@@ -134,38 +140,13 @@ const editMovie = async (req, res) => {
             name: name || movie.name,
             year: year || movie.year,
             rating: rating || movie.rating,
-            leadActor: leadActor || movie.leadActor,
+            leadactor: leadactor || movie.leadactor,
+            description: description || movie.description,
+            genre: genreIds || movie.genre,
         });
 
         await movie.save();
         res.status(200).json({ message: "Movie updated successfully", movie: movie });
-    } catch (error) {
-        res.status(400).json({ message: error.message });
-    }
-};
-
-const addGallery = async (req, res) => {
-    try {
-        const { _id } = req.body;
-        const images = req.files;
-        if (!_id) {
-            return res.status(400).json({ message: "id of movie is required" });
-        }
-        if (!images) {
-            return res.status(400).json({ message: "images not found" });
-        }
-        const movie = await Movie.findByIdAndUpdate(_id);
-        if (!movie) {
-            return res.status(400).json({ message: "movie not found" });
-        }
-        const baseURL = `${req.protocol}://${req.get("host")}/images/`;
-
-        images.forEach((image) => {
-            const imageURL = baseURL + image.filename;
-            movie.gallery.push(imageURL);
-        });
-        await movie.save();
-        res.status(200).json({ message: "Movie updated with gallery images", movie: movie });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
@@ -216,6 +197,33 @@ const removeGenreFromMovie = async (req, res) => {
 
         await movie.save();
         res.status(200).json({ message: "removed genre successfully", movie: movie });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+const addGallery = async (req, res) => {
+    try {
+        const { _id } = req.body;
+        const images = req.files;
+        if (!_id) {
+            return res.status(400).json({ message: "id of movie is required" });
+        }
+        if (!images) {
+            return res.status(400).json({ message: "images not found" });
+        }
+        const movie = await Movie.findByIdAndUpdate(_id);
+        if (!movie) {
+            return res.status(400).json({ message: "movie not found" });
+        }
+        const baseURL = `${req.protocol}://${req.get("host")}/images/`;
+
+        images.forEach((image) => {
+            const imageURL = baseURL + image.filename;
+            movie.gallery.push(imageURL);
+        });
+        await movie.save();
+        res.status(200).json({ message: "Movie updated with gallery images", movie: movie });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }

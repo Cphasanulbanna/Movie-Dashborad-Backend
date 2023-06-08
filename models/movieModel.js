@@ -21,7 +21,7 @@ const movieSchema = new mongoose.Schema(
             min: 1,
             max: 5,
         },
-        leadActor: {
+        leadactor: {
             type: String,
         },
         description: {

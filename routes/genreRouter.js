@@ -4,9 +4,10 @@ const router = express.Router();
 
 //controllers
 const { addGenre, fetchAllGenres, editGenre } = require("../controllers/genreController");
+const { checkAuth } = require("../middleware/checkAuth");
 
-router.post("/", addGenre);
-router.get("/", fetchAllGenres);
-router.put("/", editGenre);
+router.post("/", checkAuth, addGenre);
+router.get("/", checkAuth, fetchAllGenres);
+router.put("/", checkAuth, editGenre);
 
 module.exports = router;
