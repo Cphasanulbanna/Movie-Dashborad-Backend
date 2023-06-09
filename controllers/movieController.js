@@ -96,7 +96,7 @@ const fetchMoviesWithGenre = async (req, res) => {
 
 const editMovie = async (req, res) => {
     try {
-        const { name, year, rating, leadactor, description, genreIds } = req.body;
+        const { name, year, rating, leadactor, description, genre } = req.body;
         const { _id } = req.params;
 
         if (!_id) {
@@ -106,7 +106,7 @@ const editMovie = async (req, res) => {
         const movie = await Movie.findByIdAndUpdate(
             _id,
             _id,
-            { $addToSet: { genre: { $each: genreIds } } },
+            { $addToSet: { genre: { $each: genre } } },
             { new: true }
         );
         if (!movie) {
@@ -142,7 +142,7 @@ const editMovie = async (req, res) => {
             rating: rating || movie.rating,
             leadactor: leadactor || movie.leadactor,
             description: description || movie.description,
-            genre: genreIds || movie.genre,
+            genre: genre || movie.genre,
         });
 
         await movie.save();
