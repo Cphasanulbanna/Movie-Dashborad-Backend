@@ -11,8 +11,10 @@ const addGenre = async (req, res) => {
         if (genre) {
             return res.status(400).json({ message: "This genre is already added" });
         }
+
         await Genre.create({ title: title });
-        res.status(201).json({ message: `added new genre: ${title}` });
+        const genres = await Genre.find();
+        res.status(201).json({ message: `added new genre: ${title}`, genres: genres });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
