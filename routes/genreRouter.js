@@ -6,8 +6,8 @@ const router = express.Router();
 const { addGenre, fetchAllGenres, editGenre } = require("../controllers/genreController");
 const { checkAuth } = require("../middleware/checkAuth");
 
-router.post("/", checkAuth, addGenre);
+router.post("/", addGenre);
 router.get("/", checkAuth, fetchAllGenres);
-router.put("/", checkAuth, editGenre);
+router.put("/", editGenre);
 
 module.exports = router;
