@@ -54,10 +54,18 @@ const addMovie = async (req, res) => {
 
 const fetchMovies = async (req, res) => {
     try {
+        const q = req.query.q;
+
         const movies = await Movie.find().populate("genre");
+        if (q) {
+            const filteredMovies = movies.filter((movie) => movie.name.toLowerCase().includes(q));
+            return res.status(200).json({ message: "Success", moviesList: filteredMovies });
+        }
+
         if (!movies.length) {
             return res.status(400).json({ message: "Movies not found!" });
         }
+
         res.status(200).json({ message: "Success", moviesList: movies });
     } catch (error) {
         res.status(400).json({ message: error.message });
