@@ -5,45 +5,36 @@ const fs = require("fs");
 //models
 const Movie = require("../models/movieModel");
 
+const cloudinary = require("cloudinary");
+
 const addMovie = async (req, res) => {
     try {
-        const { name, year, rating, leadactor, genre } = req.body;
-        if (!name || !req.file) {
+        const { name, year, rating, leadactor, genre, description } = req.body;
+
+        if (!name || !req.files) {
             return res.status(400).json({ message: "Movie name & movie image is required" });
         }
+
+        const file = req.files.poster;
+        const moviePoster = await cloudinary.v2.uploader.upload(file.tempFilePath, {
+            folder: "movie-dashboard/movie-poster",
+        });
+
         const existingMovie = await Movie.findOne({ name: name });
         if (existingMovie) {
-            //removing imaage from device
-            const baseURL = `${req.protocol}://${req.get("host")}/images/`;
-            const oldPoster = existingMovie.poster;
-            const oldPosterFilename = oldPoster.replace(baseURL, "");
-            const oldPosterLocationInSystem = path.join(
-                __dirname,
-                "..",
-                "public",
-                "images",
-                oldPosterFilename
-            );
-
-            if (fs.existsSync(oldPosterLocationInSystem)) {
-                fs.unlinkSync(oldPosterLocationInSystem);
-            }
             return res.status(400).json({ message: "movie with this title already exists" });
         }
-        const baseURL = `${req.protocol}://${req.get("host")}/images/`;
 
+        const newPoster = { public_id: moviePoster.public_id, url: moviePoster.secure_url };
         const newMovie = {
             name: name,
-            year: year,
-            rating: rating,
-            leadactor: leadactor,
-            genre: genre,
+            year: year ?? year,
+            rating: rating ?? rating,
+            leadactor: leadactor ?? leadactor,
+            genre: genre ?? genre,
+            poster: newPoster,
+            description: description ?? description,
         };
-
-        if (req.file) {
-            const posterPath = baseURL + req.file.filename;
-            newMovie.poster = posterPath;
-        }
 
         const movie = await Movie.create(newMovie);
         res.status(201).json({ message: "added new movie", movie: movie });
@@ -106,6 +97,26 @@ const editMovie = async (req, res) => {
     try {
         const { name, year, rating, leadactor, description, genre } = req.body;
         const { _id } = req.params;
+        const files = req.files.gallery;
+        const file = req.files.poster;
+
+        const moviePoster = await cloudinary.v2.uploader.upload(file.tempFilePath, {
+            folder: "movie-dashboard/movie-poster",
+        });
+
+        const uploadPromise = files.map((file) => {
+            return cloudinary.v2.uploader.upload(file.tempFilePath, {
+                folder: "movie-dashboard/movie-gallery",
+            });
+        });
+
+        const uploadedImages = await Promise.all(uploadPromise);
+        const galleryImages = uploadedImages.map((image) => {
+            return {
+                publicId: image.public_id,
+                url: image.secure_url,
+            };
+        });
 
         if (!_id) {
             return res.status(400).json({ message: "movie id is required" });
@@ -121,37 +132,17 @@ const editMovie = async (req, res) => {
             return res.status(400).json({ message: "movie not found" });
         }
 
-        if (req.file) {
-            //removing imaage from device
-            const baseURL = `${req.protocol}://${req.get("host")}/images/`;
-            const oldPoster = movie.poster;
-            const oldPosterFilename = oldPoster.replace(baseURL, "");
-            const oldPosterLocationInSystem = path.join(
-                __dirname,
-                "..",
-                "public",
-                "images",
-                oldPosterFilename
-            );
-
-            if (fs.existsSync(oldPosterLocationInSystem)) {
-                fs.unlinkSync(oldPosterLocationInSystem);
-            }
-
-            //updating image in db
-            const newPosterPath = baseURL + req.file.filename;
-            movie.poster = newPosterPath;
-        }
+        const newPoster = { public_id: moviePoster.public_id, url: moviePoster.secure_url };
 
         //updating movie
-        Object.assign(movie, {
-            name: name || movie.name,
-            year: year || movie.year,
-            rating: rating || movie.rating,
-            leadactor: leadactor || movie.leadactor,
-            description: description || movie.description,
-            genre: genre || movie.genre,
-        });
+        movie.name = name ?? movie.name;
+        movie.year = year ?? movie.year;
+        movie.rating = rating ?? movie.rating;
+        movie.leadactor = leadactor ?? movie.leadactor;
+        movie.description = description ?? movie.description;
+        movie.genre = genre ?? movie.genre;
+        movie.gallery = galleryImages;
+        movie.poster = newPoster ?? movie.poster;
 
         await movie.save();
         res.status(200).json({ message: "Movie updated successfully", movie: movie });

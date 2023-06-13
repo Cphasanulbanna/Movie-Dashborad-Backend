@@ -13,8 +13,14 @@ const movieSchema = new mongoose.Schema(
             min: 1,
         },
         poster: {
-            type: String,
-            required: true,
+            public_id: {
+                type: String,
+                required: true,
+            },
+            url: {
+                type: String,
+                required: true,
+            },
         },
         rating: {
             type: Number,
@@ -26,11 +32,10 @@ const movieSchema = new mongoose.Schema(
         },
         description: {
             type: String,
-            minLength: 10,
         },
         gallery: [
             {
-                type: String,
+                type: Object,
             },
         ],
         genre: [

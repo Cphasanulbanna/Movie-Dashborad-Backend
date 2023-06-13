@@ -13,7 +13,14 @@ const userSchema = new mongoose.Schema(
             minLenght: 6,
         },
         profilePic: {
-            type: String,
+            public_id: {
+                type: String,
+                required: true,
+            },
+            url: {
+                type: String,
+                required: true,
+            },
         },
     },
     { timestamps: true }

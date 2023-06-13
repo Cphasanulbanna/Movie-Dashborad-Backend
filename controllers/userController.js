@@ -1,14 +1,20 @@
 //model
 const User = require("../models/userModel");
 
+const cloudinary = require("cloudinary");
+
 //functions
 const { generatePasswordHash, comparePassword } = require("../utils/bcrypt");
 const { generateAccessToken } = require("../utils/jwt");
 
 const signup = async (req, res) => {
     try {
+        const file = req.files.profilePic;
+        const profilePicture = await cloudinary.v2.uploader.upload(file.tempFilePath, {
+            folder: "movie-dashboard/profile-picture",
+        });
+
         const { username, password } = req.body;
-        const baseURL = `${req.protocol}://${req.get("host")}/images/`;
 
         if (!username || !password) {
             return res
@@ -27,12 +33,11 @@ const signup = async (req, res) => {
         const newUser = {
             username: username,
             password: hashedPaassword,
+            profilePic: {
+                public_id: profilePicture.public_id,
+                url: profilePicture.secure_url,
+            },
         };
-
-        if (req.file) {
-            const imagePath = baseURL + req.file.filename;
-            newUser.profilePic = imagePath;
-        }
 
         await User.create(newUser);
 

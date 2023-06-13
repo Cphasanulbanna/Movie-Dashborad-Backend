@@ -9,18 +9,15 @@ const {
     addGenreToMovie,
     removeGenreFromMovie,
     fetchMoviesWithGenre,
-    addGallery,
     fetchSingleMovie,
 } = require("../controllers/movieController");
-const upload = require("../middleware/uploadImage");
 const { checkAuth } = require("../middleware/checkAuth");
 
-router.get("/", checkAuth, fetchMovies);
+router.get("/", fetchMovies);
 router.get("/:_id", checkAuth, fetchSingleMovie);
 router.get("/with-genre", fetchMoviesWithGenre);
-router.post("/", upload.single("poster"), addMovie);
-router.put("/gallery", upload.array("gallery", [4]), addGallery);
-router.put("/:_id", upload.single("poster"), editMovie);
+router.post("/", addMovie);
+router.put("/:_id", editMovie);
 router.put("/add-genre", addGenreToMovie);
 router.put("/remove-genre", removeGenreFromMovie);
 router.delete("/", deleteMovie);
