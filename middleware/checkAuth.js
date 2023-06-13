@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/userModel");
 
-const checkAuth = (req, res, next) => {
+const checkAuth = async (req, res, next) => {
     try {
         let token = req.headers.authorization;
         console.log(token, "***");
@@ -12,6 +13,12 @@ const checkAuth = (req, res, next) => {
 
         const tokenValid = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
         req.userId = tokenValid._id;
+
+        // Check if the user exists in the database
+        const user = await User.findById(req.userId);
+        if (!user) {
+            return res.status(401).json({ message: "Access denied: User not found" });
+        }
         next();
     } catch (error) {
         console.log(error);
