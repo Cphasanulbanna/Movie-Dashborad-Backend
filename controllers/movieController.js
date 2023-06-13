@@ -36,6 +36,9 @@ const addMovie = async (req, res) => {
             description: description ?? description,
         };
 
+        // Delete the temporary file
+        fs.unlinkSync(file.tempFilePath);
+
         const movie = await Movie.create(newMovie);
         res.status(201).json({ message: "added new movie", movie: movie });
     } catch (error) {
@@ -95,54 +98,59 @@ const fetchMoviesWithGenre = async (req, res) => {
 
 const editMovie = async (req, res) => {
     try {
-        const { name, year, rating, leadactor, description, genre } = req.body;
+        const { name, year, rating, leadactor, description } = req.body;
+        const genres = req.body["genre[]"]; // Access genres as an array
+
         const { _id } = req.params;
-        const files = req.files.gallery;
-        const file = req.files.poster;
-
-        const moviePoster = await cloudinary.v2.uploader.upload(file.tempFilePath, {
-            folder: "movie-dashboard/movie-poster",
-        });
-
-        const uploadPromise = files.map((file) => {
-            return cloudinary.v2.uploader.upload(file.tempFilePath, {
-                folder: "movie-dashboard/movie-gallery",
-            });
-        });
-
-        const uploadedImages = await Promise.all(uploadPromise);
-        const galleryImages = uploadedImages.map((image) => {
-            return {
-                publicId: image.public_id,
-                url: image.secure_url,
-            };
-        });
+        const files = req.files?.gallery;
+        const file = req.files?.poster;
 
         if (!_id) {
             return res.status(400).json({ message: "movie id is required" });
         }
 
-        const movie = await Movie.findByIdAndUpdate(
-            _id,
-            _id,
-            { $addToSet: { genre: { $each: genre } } },
-            { new: true }
-        );
+        const movie = await Movie.findById(_id);
         if (!movie) {
             return res.status(400).json({ message: "movie not found" });
         }
 
-        const newPoster = { public_id: moviePoster.public_id, url: moviePoster.secure_url };
+        if (req.files?.poster) {
+            const moviePoster = await cloudinary.v2.uploader.upload(file.tempFilePath, {
+                folder: "movie-dashboard/movie-poster",
+            });
+
+            const newPoster = { public_id: moviePoster.public_id, url: moviePoster.secure_url };
+            movie.poster = newPoster ? newPoster : movie.poster;
+        }
+
+        if (req.files?.gallery) {
+            const uploadPromise = files.map((file) => {
+                return cloudinary.v2.uploader.upload(file.tempFilePath, {
+                    folder: "movie-dashboard/movie-gallery",
+                });
+            });
+            const uploadedImages = await Promise.all(uploadPromise);
+            const galleryImages = uploadedImages.map((image) => {
+                return {
+                    publicId: image.public_id,
+                    url: image.secure_url,
+                };
+            });
+            movie.gallery = galleryImages ? galleryImages : movie.galleryImages;
+        }
 
         //updating movie
-        movie.name = name ?? movie.name;
-        movie.year = year ?? movie.year;
-        movie.rating = rating ?? movie.rating;
-        movie.leadactor = leadactor ?? movie.leadactor;
-        movie.description = description ?? movie.description;
-        movie.genre = genre ?? movie.genre;
-        movie.gallery = galleryImages;
-        movie.poster = newPoster ?? movie.poster;
+        movie.name = name ? name : movie.name;
+        movie.year = year ? year : movie.year;
+        movie.rating = rating ? rating : movie.rating;
+        movie.leadactor = leadactor ? leadactor : movie.leadactor;
+        movie.description = description ? description : movie.description;
+        movie.genre = genres ? [...movie.genre, ...genres] : movie.genre;
+
+        if (file) {
+            // Delete the temporary file
+            fs.unlinkSync(file.tempFilePath);
+        }
 
         await movie.save();
         res.status(200).json({ message: "Movie updated successfully", movie: movie });
