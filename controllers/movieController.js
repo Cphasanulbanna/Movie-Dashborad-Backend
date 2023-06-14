@@ -51,13 +51,17 @@ const fetchMovies = async (req, res) => {
     try {
         const q = req.query.q;
         const page = req.query.p;
-        const moviesPerPage = 2;
+        const moviesPerPage = 6;
 
         const totalMovies = await Movie.countDocuments();
         const totalPages = Math.ceil(totalMovies / moviesPerPage);
         const count = page > 1 ? moviesPerPage * page - moviesPerPage : 0;
 
-        const paginatedData = await Movie.find().populate("genre").skip(count).limit(moviesPerPage);
+        const paginatedData = await Movie.find()
+            .populate("genre")
+            .skip(count)
+            .limit(moviesPerPage)
+            .select("genre name poster year rating description");
         const regex = new RegExp(q, "i");
         if (q) {
             const filteredMovies = await Movie.find({ name: { $regex: regex } })

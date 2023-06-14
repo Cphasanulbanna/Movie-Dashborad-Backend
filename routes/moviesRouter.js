@@ -13,7 +13,7 @@ const {
 } = require("../controllers/movieController");
 const { checkAuth } = require("../middleware/checkAuth");
 
-router.get("/", fetchMovies);
+router.get("/", checkAuth, fetchMovies);
 router.get("/:_id", checkAuth, fetchSingleMovie);
 router.get("/with-genre", checkAuth, fetchMoviesWithGenre);
 router.post("/", addMovie);
