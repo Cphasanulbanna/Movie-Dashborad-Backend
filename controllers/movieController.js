@@ -14,6 +14,7 @@ const addMovie = async (req, res) => {
         if (!name || !req.files) {
             return res.status(400).json({ message: "Movie name & movie image is required" });
         }
+        const gerneArray = genre ? genre.split(",") : [];
 
         const file = req.files.poster;
         const moviePoster = await cloudinary.v2.uploader.upload(file.tempFilePath, {
@@ -31,7 +32,7 @@ const addMovie = async (req, res) => {
             year: year ?? year,
             rating: rating ?? rating,
             leadactor: leadactor ?? leadactor,
-            genre: genre ?? genre,
+            genre: genre ? gerneArray : [],
             poster: newPoster,
             description: description ?? description,
         };
