@@ -119,10 +119,9 @@ const fetchMoviesWithGenre = async (req, res) => {
 
 const editMovie = async (req, res) => {
     try {
-        const { name, year, rating, leadactor, description } = req.body;
-        const genres = req.body["genre[]"]; // Access genres as an array
-        const genresArray = Array.isArray(genres) ? genres : [genres];
+        const { name, year, rating, leadactor, description, genre } = req.body;
 
+        const gerneArray = genre.split(",");
         const { _id } = req.params;
         const files = req.files?.gallery;
         const file = req.files?.poster;
@@ -167,7 +166,7 @@ const editMovie = async (req, res) => {
         movie.rating = rating ? rating : movie.rating;
         movie.leadactor = leadactor ? leadactor : movie.leadactor;
         movie.description = description ? description : movie.description;
-        movie.genre = genres ? [...movie.genre, ...genresArray] : movie.genre;
+        movie.genre = genre ? gerneArray : movie.genre;
 
         if (file) {
             // Delete the temporary file
@@ -270,23 +269,6 @@ const deleteMovie = async (req, res) => {
         }
         //deleting from db
         await Movie.deleteMany({ _id: { $in: movieIds } });
-
-        const baseURL = `${req.protocol}://${req.get("host")}/images/`;
-        //deleting from device
-        movies.forEach((movie) => {
-            const poster = movie.poster;
-            const movieFilename = poster.replace(baseURL, "");
-            const posterLocationInSystem = path.join(
-                __dirname,
-                "..",
-                "public",
-                "images",
-                movieFilename
-            );
-            if (fs.existsSync(posterLocationInSystem)) {
-                fs.unlinkSync(posterLocationInSystem);
-            }
-        });
 
         res.status(200).json({ message: "movies deleted successfully" });
     } catch (error) {
