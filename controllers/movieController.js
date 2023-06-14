@@ -49,18 +49,36 @@ const addMovie = async (req, res) => {
 const fetchMovies = async (req, res) => {
     try {
         const q = req.query.q;
+        const page = req.query.p;
+        const moviesPerPage = 2;
 
-        const movies = await Movie.find().populate("genre");
+        const totalMovies = await Movie.countDocuments();
+        const count = page > 1 ? moviesPerPage * page - moviesPerPage : 0;
+
+        const paginatedData = await Movie.find().populate("genre").skip(count).limit(moviesPerPage);
+        const regex = new RegExp(q, "i");
         if (q) {
-            const filteredMovies = movies.filter((movie) => movie.name.toLowerCase().includes(q));
-            return res.status(200).json({ message: "Success", moviesList: filteredMovies });
+            const filteredMovies = await Movie.find({ name: { $regex: regex } })
+                .populate("genre")
+                .skip(count)
+                .limit(moviesPerPage);
+
+            return res.status(200).json({
+                message: "Success",
+                moviesList: filteredMovies,
+                total_movies: totalMovies,
+            });
         }
 
-        if (!movies.length) {
+        if (!paginatedData.length) {
             return res.status(400).json({ message: "Movies not found!" });
         }
 
-        res.status(200).json({ message: "Success", moviesList: movies });
+        res.status(200).json({
+            message: "Success",
+            moviesList: paginatedData,
+            total_movies: totalMovies,
+        });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
