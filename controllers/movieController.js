@@ -53,6 +53,7 @@ const fetchMovies = async (req, res) => {
         const moviesPerPage = 2;
 
         const totalMovies = await Movie.countDocuments();
+        const totalPages = Math.ceil(totalMovies / moviesPerPage);
         const count = page > 1 ? moviesPerPage * page - moviesPerPage : 0;
 
         const paginatedData = await Movie.find().populate("genre").skip(count).limit(moviesPerPage);
@@ -67,6 +68,7 @@ const fetchMovies = async (req, res) => {
                 message: "Success",
                 moviesList: filteredMovies,
                 total_movies: totalMovies,
+                total_pages: totalPages,
             });
         }
 
@@ -78,6 +80,7 @@ const fetchMovies = async (req, res) => {
             message: "Success",
             moviesList: paginatedData,
             total_movies: totalMovies,
+            total_pages: totalPages,
         });
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -118,6 +121,7 @@ const editMovie = async (req, res) => {
     try {
         const { name, year, rating, leadactor, description } = req.body;
         const genres = req.body["genre[]"]; // Access genres as an array
+        const genresArray = Array.isArray(genres) ? genres : [genres];
 
         const { _id } = req.params;
         const files = req.files?.gallery;
@@ -163,7 +167,7 @@ const editMovie = async (req, res) => {
         movie.rating = rating ? rating : movie.rating;
         movie.leadactor = leadactor ? leadactor : movie.leadactor;
         movie.description = description ? description : movie.description;
-        movie.genre = genres ? [...movie.genre, ...genres] : movie.genre;
+        movie.genre = genres ? [...movie.genre, ...genresArray] : movie.genre;
 
         if (file) {
             // Delete the temporary file
