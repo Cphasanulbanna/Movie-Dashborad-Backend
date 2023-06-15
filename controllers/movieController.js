@@ -171,7 +171,7 @@ const editMovie = async (req, res) => {
         movie.rating = rating ? rating : movie.rating;
         movie.leadactor = leadactor ? leadactor : movie.leadactor;
         movie.description = description ? description : movie.description;
-        movie.genre = genre ? gerneArray : movie.genre;
+        movie.genre = genre ? gerneArray : [];
 
         if (file) {
             // Delete the temporary file
