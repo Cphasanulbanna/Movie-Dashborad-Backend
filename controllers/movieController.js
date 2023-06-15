@@ -61,7 +61,7 @@ const fetchMovies = async (req, res) => {
             .populate("genre")
             .skip(count)
             .limit(moviesPerPage)
-            .select("genre name poster year rating description");
+            .select("genre name poster year rating description leadactor");
         const regex = new RegExp(q, "i");
         if (q) {
             const filteredMovies = await Movie.find({ name: { $regex: regex } })
@@ -264,18 +264,19 @@ const addGallery = async (req, res) => {
 
 const deleteMovie = async (req, res) => {
     try {
-        const { movieIds } = req.body;
-        if (!movieIds || !Array.isArray(movieIds)) {
-            return res.status(404).json({ message: "movie Ids is required" });
+        const { movieId } = req.body;
+        if (!movieId) {
+            return res.status(404).json({ message: "movie Id is required" });
         }
-        const movies = await Movie.find({ _id: { $in: movieIds } });
-        if (!movies) {
-            return res.status(404).json({ message: "Movies not found" });
+        const movie = await Movie.findById(movieId);
+        if (!movie) {
+            return res.status(404).json({ message: "Movie not found" });
         }
         //deleting from db
-        await Movie.deleteMany({ _id: { $in: movieIds } });
+        await cloudinary.uploader.destroy(movie?.poster?.public_id);
+        await Movie.findByIdAndDelete(movieId);
 
-        res.status(200).json({ message: "movies deleted successfully" });
+        res.status(200).json({ message: "movie deleted successfully" });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
