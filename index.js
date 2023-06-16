@@ -12,11 +12,13 @@ const userRouter = require("./routes/userRouter");
 
 //functions
 const { connectDb } = require("./config/db");
+const sessionMiddleware = require("./utils/session.js");
 
 const PORT = process.env.PORT || 5005;
 const app = express();
 
 //middlewares
+app.use(sessionMiddleware);
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

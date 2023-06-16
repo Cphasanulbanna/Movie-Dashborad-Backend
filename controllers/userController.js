@@ -3,6 +3,7 @@ const User = require("../models/userModel");
 
 const cloudinary = require("cloudinary");
 const nodemailer = require("nodemailer");
+const consola = require("consola");
 
 //functions
 const { generatePasswordHash, comparePassword } = require("../utils/bcrypt");
@@ -102,7 +103,6 @@ const getAllUsers = async (req, res) => {
     }
 };
 
-let generatedOTP = "";
 const forgetPassword = async (req, res) => {
     try {
         const { email } = req.body;
@@ -115,7 +115,10 @@ const forgetPassword = async (req, res) => {
             return res.status(400).json({ message: "User not found" });
         }
 
-        generatedOTP = generateOtp();
+        const generatedOTP = generateOtp();
+        consola.log(generatedOTP, "inside forget password");
+        // Store the OTP in the session
+        req.session.generatedOTP = generatedOTP;
 
         let transporter = nodemailer.createTransport({
             host: "smtp.gmail.com",
@@ -429,19 +432,26 @@ const forgetPassword = async (req, res) => {
     }
 };
 
-let OTPverified;
 const verifyOtp = async (req, res) => {
     try {
         const { otp } = req.body;
+
         if (!otp) {
             return res.status(400).json({ message: "OTP is required", StatusCode: 6001 });
         }
 
-        if (otp !== generatedOTP) {
+        // Compare the user-entered OTP with the stored OTP in the session
+        const storedOTP = req.session.generatedOTP;
+
+        consola.error(otp, "user enetered otp-----------------");
+        consola.error(storedOTP, "stored otp++++++++++++++++++++");
+
+        if (otp !== storedOTP) {
             return res.status(400).json({ message: "Invalid OTP", StatusCode: 6001 });
         }
 
-        OTPverified = true;
+        req.session.otpVerified = true;
+        req.session.generatedOTP = null;
         return res.status(200).json({ message: "OTP Verified" });
     } catch (error) {
         res.status(400).json({ message: error.message, StatusCode: 6001 });
@@ -457,14 +467,19 @@ const resetPassword = async (req, res) => {
 
         const passwordHash = await generatePasswordHash(password);
         const user = await User.findOne({ email: email });
-        if (OTPverified) {
+
+        const otpVerified = req.session.otpVerified;
+        consola.log(otpVerified, "verify");
+        if (otpVerified) {
             user.password = passwordHash;
             await user.save();
-
+            req.session.otpVerified = false;
             return res.status(200).json({ message: "Password changed successfully!" });
+        } else {
+            return res.status(400).json({ message: "otp unverified" });
         }
     } catch (error) {
-        res.status(400).json({ message: error.message, StatusCode: 6001 });
+        return res.status(400).json({ message: error.message, StatusCode: 6001 });
     }
 };
 module.exports = { signup, login, getAllUsers, forgetPassword, verifyOtp, resetPassword };
