@@ -99,4 +99,11 @@ const getAllUsers = async (req, res) => {
         res.status(400).json({ message: error.message, StatusCode: 6001 });
     }
 };
+
+const forgetPassword = async (req, res) => {
+    try {
+    } catch (error) {
+        res.status(400).json({ message: error.message, StatusCode: 6001 });
+    }
+};
 module.exports = { signup, login, getAllUsers };
