@@ -447,4 +447,24 @@ const verifyOtp = async (req, res) => {
         res.status(400).json({ message: error.message, StatusCode: 6001 });
     }
 };
-module.exports = { signup, login, getAllUsers };
+
+const resetPassword = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            return res.status(400).json({ message: "Email & Password is required" });
+        }
+
+        const passwordHash = await generatePasswordHash(password);
+        const user = await User.findOne({ email: email });
+        if (OTPverified) {
+            user.password = passwordHash;
+            await user.save();
+
+            return res.status(200).json({ message: "Password changed successfully!" });
+        }
+    } catch (error) {
+        res.status(400).json({ message: error.message, StatusCode: 6001 });
+    }
+};
+module.exports = { signup, login, getAllUsers, forgetPassword, verifyOtp, resetPassword };
