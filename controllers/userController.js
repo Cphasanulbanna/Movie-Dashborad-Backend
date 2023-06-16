@@ -9,19 +9,26 @@ const { generateAccessToken } = require("../utils/jwt");
 
 const signup = async (req, res) => {
     try {
-        const file = req.files.profilePic;
-        const profilePicture = await cloudinary.v2.uploader.upload(file.tempFilePath, {
+        const file = req?.files?.profilePic;
+        if (!file) {
+            return res.status(400).json({
+                message: "profile-picture is required",
+                StatusCode: 6001,
+            });
+        }
+        const profilePicture = await cloudinary.v2.uploader.upload(file?.tempFilePath, {
             folder: "movie-dashboard/profile-picture",
         });
 
-        const { username, password } = req.body;
+        const { username, password, email } = req.body;
 
-        if (!username || !password) {
-            return res
-                .status(400)
-                .json({ message: "Username and Password is required", StatusCode: 6001 });
+        if (!username || !password || !email) {
+            return res.status(400).json({
+                message: "Username, email, profile-picture and Password is required",
+                StatusCode: 6001,
+            });
         }
-        const isExists = await User.findOne({ username: username });
+        const isExists = await User.findOne({ email: email });
         if (isExists) {
             return res
                 .status(400)
@@ -31,6 +38,7 @@ const signup = async (req, res) => {
         const hashedPaassword = await generatePasswordHash(password);
 
         const newUser = {
+            email: email,
             username: username,
             password: hashedPaassword,
             profilePic: {
@@ -38,6 +46,9 @@ const signup = async (req, res) => {
                 url: profilePicture.secure_url,
             },
         };
+
+        // Delete the temporary file
+        fs.unlinkSync(file.tempFilePath);
 
         await User.create(newUser);
 
@@ -49,13 +60,13 @@ const signup = async (req, res) => {
 
 const login = async (req, res) => {
     try {
-        const { username, password } = req.body;
-        if (!username || !password) {
+        const { email, password } = req.body;
+        if (!email || !password) {
             return res
                 .status(400)
-                .json({ message: "Username and Password is required", StatusCode: 6001 });
+                .json({ message: "email and Password is required", StatusCode: 6001 });
         }
-        const user = await User.findOne({ username: username });
+        const user = await User.findOne({ email: email });
         if (!user) {
             return res.status(401).json({ message: "User not found", StatusCode: 6001 });
         }
@@ -71,6 +82,7 @@ const login = async (req, res) => {
             message: "Login success",
             _id: user.id,
             username: user.username,
+            email: user.email,
             profile_pic: user.profilePic,
             access_token: accessToken,
         });
