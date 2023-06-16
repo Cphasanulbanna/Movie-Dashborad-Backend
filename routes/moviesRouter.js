@@ -6,8 +6,6 @@ const {
     fetchMovies,
     editMovie,
     deleteMovie,
-    addGenreToMovie,
-    removeGenreFromMovie,
     fetchMoviesWithGenre,
     fetchSingleMovie,
 } = require("../controllers/movieController");
@@ -18,8 +16,6 @@ router.get("/:_id", checkAuth, fetchSingleMovie);
 router.get("/with-genre", checkAuth, fetchMoviesWithGenre);
 router.post("/", addMovie);
 router.put("/:_id", editMovie);
-router.put("/add-genre", addGenreToMovie);
-router.put("/remove-genre", removeGenreFromMovie);
 router.delete("/", deleteMovie);
 
 module.exports = router;

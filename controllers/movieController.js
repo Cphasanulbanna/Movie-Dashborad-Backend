@@ -1,11 +1,9 @@
 //modules
-const path = require("path");
 const fs = require("fs");
+const cloudinary = require("cloudinary");
 
 //models
 const Movie = require("../models/movieModel");
-
-const cloudinary = require("cloudinary");
 
 const addMovie = async (req, res) => {
     try {
@@ -55,7 +53,6 @@ const fetchMovies = async (req, res) => {
 
         const totalMovies = await Movie.countDocuments();
         const totalPages = Math.ceil(totalMovies / moviesPerPage);
-        // const count = page > 1 ? moviesPerPage * page - moviesPerPage : 0;
 
         const paginatedData = await Movie.find()
             .populate("genre")
@@ -185,83 +182,6 @@ const editMovie = async (req, res) => {
     }
 };
 
-const addGenreToMovie = async (req, res) => {
-    try {
-        const { genreIds, _id } = req.body;
-
-        if (!genreIds || !_id) {
-            return res.status(400).json({ message: "movie id & genre id's are required" });
-        }
-
-        const movie = await Movie.findByIdAndUpdate(
-            _id,
-            { $addToSet: { genre: { $each: genreIds } } },
-            { new: true }
-        );
-        if (!movie) {
-            return res.status(400).json({ message: "movie not found" });
-        }
-
-        await movie.save();
-        res.status(200).json({ message: "new genre added successfully", movie: movie });
-    } catch (error) {
-        res.status(400).json({ message: error.message });
-    }
-};
-
-const removeGenreFromMovie = async (req, res) => {
-    try {
-        const { genreId, _id } = req.body;
-        if (!_id) {
-            return res.status(400).json({ message: "Id of movie is required" });
-        }
-        if (!genreId) {
-            return res.status(400).json({ message: "Id of genre is required" });
-        }
-
-        const movie = await Movie.findByIdAndUpdate(
-            _id,
-            { $pull: { genre: genreId } },
-            { new: true }
-        );
-        if (!movie) {
-            return res.status(400).json({ message: "movie not found" });
-        }
-
-        await movie.save();
-        res.status(200).json({ message: "removed genre successfully", movie: movie });
-    } catch (error) {
-        res.status(400).json({ message: error.message });
-    }
-};
-
-const addGallery = async (req, res) => {
-    try {
-        const { _id } = req.body;
-        const images = req.files;
-        if (!_id) {
-            return res.status(400).json({ message: "id of movie is required" });
-        }
-        if (!images) {
-            return res.status(400).json({ message: "images not found" });
-        }
-        const movie = await Movie.findByIdAndUpdate(_id);
-        if (!movie) {
-            return res.status(400).json({ message: "movie not found" });
-        }
-        const baseURL = `${req.protocol}://${req.get("host")}/images/`;
-
-        images.forEach((image) => {
-            const imageURL = baseURL + image.filename;
-            movie.gallery.push(imageURL);
-        });
-        await movie.save();
-        res.status(200).json({ message: "Movie updated with gallery images", movie: movie });
-    } catch (error) {
-        res.status(400).json({ message: error.message });
-    }
-};
-
 const deleteMovie = async (req, res) => {
     try {
         const { movieId } = req.body;
@@ -287,9 +207,6 @@ module.exports = {
     fetchMovies,
     editMovie,
     deleteMovie,
-    addGenreToMovie,
-    removeGenreFromMovie,
     fetchMoviesWithGenre,
-    addGallery,
     fetchSingleMovie,
 };
