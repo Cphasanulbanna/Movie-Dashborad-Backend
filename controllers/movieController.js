@@ -61,16 +61,19 @@ const fetchMovies = async (req, res) => {
             .select("genre name poster year rating description leadactor");
         const regex = new RegExp(q, "i");
         if (q) {
+            const movieCount = await Movie.find({ name: { $regex: regex } });
             const filteredMovies = await Movie.find({ name: { $regex: regex } })
                 .populate("genre")
                 .skip(page * moviesPerPage)
                 .limit(moviesPerPage);
 
+            const total = Math.ceil(movieCount.length / moviesPerPage);
+
             return res.status(200).json({
                 message: "Success",
                 moviesList: filteredMovies,
                 total_movies: totalMovies,
-                total_pages: totalPages,
+                total_pages: total,
             });
         }
 
