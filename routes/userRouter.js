@@ -12,10 +12,11 @@ const {
     forgetPassword,
 } = require("../controllers/userController");
 const { checkAuth } = require("../middleware/checkAuth");
+const { checkRole } = require("../middleware/checkRole");
 
 router.post("/signup", signup);
 router.post("/login", login);
-router.get("/users", checkAuth, getAllUsers);
+router.get("/users", checkAuth, checkRole, getAllUsers);
 
 router.post("/forget-password", forgetPassword);
 router.post("/verify-otp", verifyOtp);
