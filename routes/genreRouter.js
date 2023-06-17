@@ -10,10 +10,11 @@ const {
     deleteGenre,
 } = require("../controllers/genreController");
 const { checkAuth } = require("../middleware/checkAuth");
+const { checkRole } = require("../middleware/checkRole");
 
-router.post("/", addGenre);
+router.post("/", checkAuth, checkRole, addGenre);
 router.get("/", checkAuth, fetchAllGenres);
-router.put("/", editGenre);
-router.delete("/", deleteGenre);
+router.put("/", checkAuth, checkRole, editGenre);
+router.delete("/", checkAuth, checkRole, deleteGenre);
 
 module.exports = router;

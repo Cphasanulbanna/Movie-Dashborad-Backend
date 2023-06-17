@@ -10,7 +10,7 @@ const checkRole = async (req, res, next) => {
         }
         next();
     } catch (error) {
-        res.status(500).json({ message: "Internal server error" });
+        res.status(401).json({ message: "Unauthorized , only admin can access these routes" });
     }
 };
 
