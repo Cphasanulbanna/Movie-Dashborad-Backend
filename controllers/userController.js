@@ -1,6 +1,7 @@
 //model
 const User = require("../models/userModel");
 
+//packages
 const cloudinary = require("cloudinary");
 const nodemailer = require("nodemailer");
 const consola = require("consola");
@@ -469,7 +470,6 @@ const resetPassword = async (req, res) => {
         const user = await User.findOne({ email: email });
 
         const otpVerified = req.session.otpVerified;
-        consola.log(otpVerified, "verify");
         if (otpVerified) {
             user.password = passwordHash;
             await user.save();
