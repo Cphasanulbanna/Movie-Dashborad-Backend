@@ -5,6 +5,7 @@ const User = require("../models/userModel");
 const cloudinary = require("cloudinary");
 const nodemailer = require("nodemailer");
 const consola = require("consola");
+const session = require("express-session");
 
 //functions
 const { generatePasswordHash, comparePassword } = require("../utils/bcrypt");
@@ -119,7 +120,13 @@ const forgetPassword = async (req, res) => {
         const generatedOTP = generateOtp();
         consola.log(generatedOTP, "inside forget password");
         // Store the OTP in the session
-        req.session.generatedOTP = generatedOTP;
+        // req.session.generatedOTP = generatedOTP;
+        user.otp = generatedOTP;
+
+        await user.save();
+
+        // consola.log(req.sessionID, "id in forget password");
+        // consola.log(req.session.generatedOTP, "otp from session inside forget password api");
 
         let transporter = nodemailer.createTransport({
             host: "smtp.gmail.com",
@@ -422,38 +429,46 @@ const forgetPassword = async (req, res) => {
             </html>`, // You can use html templates if you want to customize the design of email
         };
 
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                return res.status(400).json({ message: error.message });
-            }
-            return res.status(200).json({ message: `OTP sent to ${email}` });
-        });
+        // transporter.sendMail(mailOptions, (error, info) => {
+        //     if (error) {
+        //         return res.status(400).json({ message: error.message });
+        //     }
+        //     return res.status(200).json({ StatusCode: 6000, message: `OTP sent to ${email}` });
+        // });
+        res.status(200).json({ StatusCode: 6000, message: `OTP sent to ${email}` });
     } catch (error) {
         res.status(400).json({ message: error.message, StatusCode: 6001 });
     }
 };
+//t2HHRxiSV51et3d78ZwN4JK5blLKv8nH
+
+//iAVbwyq3dVUTlwDuPmPRQypudIaaPXjN
 
 const verifyOtp = async (req, res) => {
     try {
-        const { otp } = req.body;
+        const { otp, email } = req.body;
 
         if (!otp) {
             return res.status(400).json({ message: "OTP is required", StatusCode: 6001 });
         }
 
+        const user = await User.findOne({ email: email });
+
         // Compare the user-entered OTP with the stored OTP in the session
-        const storedOTP = req.session.generatedOTP;
 
         consola.error(otp, "user enetered otp-----------------");
-        consola.error(storedOTP, "stored otp++++++++++++++++++++");
+        consola.error(user.otp, "stored otp++++++++++++++++++++");
 
-        if (otp !== storedOTP) {
+        if (otp !== user.otp) {
             return res.status(400).json({ message: "Invalid OTP", StatusCode: 6001 });
         }
 
-        req.session.otpVerified = true;
-        req.session.generatedOTP = null;
-        return res.status(200).json({ message: "OTP Verified" });
+        // req.session.otpVerified = true;
+
+        res.status(200).json({ StatusCode: 6000, message: "OTP Verified" });
+        user.otp = "";
+        await user.save();
+        // req.session.generatedOTP = null;
     } catch (error) {
         res.status(400).json({ message: error.message, StatusCode: 6001 });
     }

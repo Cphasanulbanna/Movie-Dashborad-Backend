@@ -1,7 +1,7 @@
 const session = require("express-session");
 
 const sessionMiddleware = session({
-    secret: "your-secret-key",
+    secret: "123456",
     resave: false,
     saveUninitialized: false,
 });
