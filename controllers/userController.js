@@ -121,7 +121,10 @@ const forgetPassword = async (req, res) => {
         consola.log(generatedOTP, "inside forget password");
         // Store the OTP in the session
         // req.session.generatedOTP = generatedOTP;
-        user.otp = generatedOTP;
+        user.otp = {
+            otp: generatedOTP,
+            otp_verified: false,
+        };
 
         await user.save();
 
@@ -459,14 +462,17 @@ const verifyOtp = async (req, res) => {
         consola.error(otp, "user enetered otp-----------------");
         consola.error(user.otp, "stored otp++++++++++++++++++++");
 
-        if (otp !== user.otp) {
+        if (otp !== user.otp.otp) {
             return res.status(400).json({ message: "Invalid OTP", StatusCode: 6001 });
         }
 
         // req.session.otpVerified = true;
 
         res.status(200).json({ StatusCode: 6000, message: "OTP Verified" });
-        user.otp = "";
+        user.otp = {
+            otp: "",
+            otp_verified: true,
+        };
         await user.save();
         // req.session.generatedOTP = null;
     } catch (error) {
@@ -484,12 +490,17 @@ const resetPassword = async (req, res) => {
         const passwordHash = await generatePasswordHash(password);
         const user = await User.findOne({ email: email });
 
-        const otpVerified = req.session.otpVerified;
+        const otpVerified = user.otp.otp_verified;
         if (otpVerified) {
             user.password = passwordHash;
+            user.otp = {
+                otp: "",
+                otp_verified: false,
+            };
             await user.save();
-            req.session.otpVerified = false;
-            return res.status(200).json({ message: "Password changed successfully!" });
+            return res
+                .status(200)
+                .json({ StatusCode: 6000, message: "Password changed successfully!" });
         } else {
             return res.status(400).json({ message: "otp unverified" });
         }

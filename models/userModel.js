@@ -33,9 +33,15 @@ const userSchema = new mongoose.Schema(
             },
         },
         otp: {
-            type: String,
-            minLenght: 4,
-            maxLength: 4,
+            otp: {
+                type: String,
+                minLenght: 4,
+                maxLength: 4,
+            },
+            otp_verified: {
+                type: Boolean,
+                default: false,
+            },
         },
     },
     { timestamps: true }
