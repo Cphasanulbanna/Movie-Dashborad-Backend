@@ -26,7 +26,7 @@ const movieSchema = new mongoose.Schema(
             type: Number,
             min: 1,
             max: 5,
-            default: 0,
+            default: 2,
         },
         leadactor: {
             type: String,

@@ -4,6 +4,9 @@ const cloudinary = require("cloudinary");
 
 //models
 const Movie = require("../models/movieModel");
+const Genre = require("../models/genreModel");
+
+const movies = require("../movies.json");
 
 const addMovie = async (req, res) => {
     try {
@@ -47,46 +50,82 @@ const addMovie = async (req, res) => {
 
 const fetchMovies = async (req, res) => {
     try {
-        const q = req.query.q;
-        const page = req.query.p || 0;
-        const moviesPerPage = 6;
+        const search = req.query.search || "";
+        const page = parseInt(req.query.page) - 1 || 0;
+        const limit = parseInt(req.query.limit) || 6;
+        let genre = req.query.genre || "All";
+        let rating = req.query.rating || "All";
 
-        const totalMovies = await Movie.countDocuments();
-        const totalPages = Math.ceil(totalMovies / moviesPerPage);
+        const genres = await Genre.find().select("title _id");
+        const genreIds = genres.map((genre) => genre._id);
 
-        const paginatedData = await Movie.find()
-            .populate("genre")
-            .skip(page * moviesPerPage)
-            .limit(moviesPerPage)
-            .select("genre name poster year rating description leadactor");
-        const regex = new RegExp(q, "i");
-        if (q) {
-            const movieCount = await Movie.find({ name: { $regex: regex } });
-            const filteredMovies = await Movie.find({ name: { $regex: regex } })
-                .populate("genre")
-                .skip(page * moviesPerPage)
-                .limit(moviesPerPage);
+        genre === "All" ? (genre = [...genreIds]) : (genre = req.query.genre.split(","));
+        rating === "All"
+            ? (rating = [1, 2, 3, 4, 5, "", null])
+            : (rating = req.query.rating.split(","));
 
-            const total = Math.ceil(movieCount.length / moviesPerPage);
+        const movies = await Movie.find({ name: { $regex: search, $options: "i" } })
+            .where("rating")
+            .in([...rating])
+            .where("genre")
+            .in([...genre])
+            .skip(page * limit)
+            .limit(limit)
+            .populate("genre");
 
-            return res.status(200).json({
-                message: "Success",
-                moviesList: filteredMovies,
-                total_movies: totalMovies,
-                total_pages: total,
-            });
-        }
-
-        if (!paginatedData.length) {
-            return res.status(400).json({ message: "Movies not found!" });
-        }
-
-        res.status(200).json({
-            message: "Success",
-            moviesList: paginatedData,
-            total_movies: totalMovies,
-            total_pages: totalPages,
+        const count = await Movie.countDocuments({
+            rating: { $in: [...rating] },
+            genre: { $in: [...genre] },
+            name: { $regex: search, $options: "i" },
         });
+
+        const response = {
+            message: "Success",
+            count,
+            page: page + 1,
+            limit,
+            movies,
+            genres,
+        };
+
+        res.status(200).json(response);
+
+        // const totalMovies = await Movie.countDocuments();
+        // const totalPages = Math.ceil(totalMovies / moviesPerPage);
+
+        // const paginatedData = await Movie.find()
+        //     .populate("genre")
+        //     .skip(page * moviesPerPage)
+        //     .limit(moviesPerPage)
+        //     .select("genre name poster year rating description leadactor");
+        // const regex = new RegExp(q, "i");
+        // if (q) {
+        //     const movieCount = await Movie.find({ name: { $regex: regex } });
+        //     const filteredMovies = await Movie.find({ name: { $regex: regex } })
+        //         .populate("genre")
+        //         .skip(page * moviesPerPage)
+        //         .limit(moviesPerPage);
+
+        //     const total = Math.ceil(movieCount.length / moviesPerPage);
+
+        //     return res.status(200).json({
+        //         message: "Success",
+        //         moviesList: filteredMovies,
+        //         total_movies: totalMovies,
+        //         total_pages: total,
+        //     });
+        // }
+
+        // if (!paginatedData.length) {
+        //     return res.status(400).json({ message: "Movies not found!" });
+        // }
+
+        // res.status(200).json({
+        //     message: "Success",
+        //     moviesList: paginatedData,
+        //     total_movies: totalMovies,
+        //     total_pages: totalPages,
+        // });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
@@ -204,6 +243,19 @@ const deleteMovie = async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 };
+
+// const insertMovies = async () => {
+//     try {
+//         const docs = await Movie.insertMany(movies);
+//         return Promise.resolve(docs);
+//     } catch (error) {
+//         return Promise.reject(error);
+//     }
+// };
+
+// insertMovies()
+//     .then((docs) => console.log(docs))
+//     .catch((error) => console.log(error));
 
 module.exports = {
     addMovie,
