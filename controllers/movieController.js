@@ -6,8 +6,6 @@ const cloudinary = require("cloudinary");
 const Movie = require("../models/movieModel");
 const Genre = require("../models/genreModel");
 
-const movies = require("../movies.json");
-
 const addMovie = async (req, res) => {
     try {
         const { name, year, rating, leadactor, genre, description } = req.body;
