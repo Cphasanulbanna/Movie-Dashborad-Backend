@@ -236,7 +236,7 @@ const deleteMovie = async (req, res) => {
         await cloudinary.uploader.destroy(movie?.poster?.public_id);
         await Movie.findByIdAndDelete(movieId);
 
-        res.status(200).json({ message: "movie deleted successfully" });
+        res.status(200).json({ StatusCode: 6000, message: "movie deleted successfully" });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
