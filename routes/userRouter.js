@@ -6,6 +6,7 @@ const router = express.Router();
 const {
     signup,
     login,
+    refreshToken,
     getAllUsers,
     resetPassword,
     verifyOtp,
@@ -16,6 +17,8 @@ const { checkRole } = require("../middleware/checkRole");
 
 router.post("/signup", signup);
 router.post("/login", login);
+router.get("/refresh-token", refreshToken);
+
 router.get("/users", checkAuth, checkRole, getAllUsers);
 
 router.post("/forget-password", forgetPassword);

@@ -5,10 +5,14 @@ const checkAuth = async (req, res, next) => {
     try {
         let token = req.headers.authorization;
 
+        console.log(token, "passed token-----");
+
         if (!token) {
             return res.status(401).json({ message: "Access denied" });
         }
         token = token.split(" ")[1];
+
+        console.log(token, "splitted token////////");
 
         const tokenValid = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
         req.userId = tokenValid._id;

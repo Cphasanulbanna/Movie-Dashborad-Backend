@@ -5,11 +5,10 @@ const User = require("../models/userModel");
 const cloudinary = require("cloudinary");
 const nodemailer = require("nodemailer");
 const consola = require("consola");
-const session = require("express-session");
 
 //functions
 const { generatePasswordHash, comparePassword } = require("../utils/bcrypt");
-const { generateAccessToken } = require("../utils/jwt");
+const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require("../utils/jwt");
 const { generateOtp } = require("../utils/generateOTP");
 
 const signup = async (req, res) => {
@@ -64,6 +63,7 @@ const signup = async (req, res) => {
 };
 
 const login = async (req, res) => {
+    consola.log(req.body.email, "email----------");
     try {
         const { email, password } = req.body;
         if (!email || !password) {
@@ -82,6 +82,14 @@ const login = async (req, res) => {
         }
 
         const accessToken = generateAccessToken(user._id);
+        const refreshToken = generateRefreshToken(user._id);
+
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+        });
+
         res.status(200).json({
             StatusCode: 6000,
             message: "Login success",
@@ -90,8 +98,10 @@ const login = async (req, res) => {
             email: user.email,
             profile_pic: user.profilePic,
             access_token: accessToken,
+            refresh_token: refreshToken,
         });
     } catch (error) {
+        consola.log(error);
         res.status(400).json({ message: error.message, StatusCode: 6001 });
     }
 };
@@ -464,8 +474,8 @@ const verifyOtp = async (req, res) => {
 
         // Compare the user-entered OTP with the stored OTP in the session
 
-        consola.error(otp, "user enetered otp-----------------");
-        consola.error(user.otp, "stored otp++++++++++++++++++++");
+        // consola.error(otp, "user enetered otp-----------------");
+        // consola.error(user.otp, "stored otp++++++++++++++++++++");
 
         if (otp !== user.otp.otp) {
             return res.status(400).json({ message: "Invalid OTP", StatusCode: 6001 });
@@ -481,7 +491,7 @@ const verifyOtp = async (req, res) => {
         await user.save();
         // req.session.generatedOTP = null;
     } catch (error) {
-        res.status(400).json({ message: error.message, StatusCode: 6001 });
+        res.status(500).json({ message: error.message, StatusCode: 6001 });
     }
 };
 
@@ -510,7 +520,42 @@ const resetPassword = async (req, res) => {
             return res.status(400).json({ message: "otp unverified" });
         }
     } catch (error) {
-        return res.status(400).json({ message: error.message, StatusCode: 6001 });
+        return res.status(500).json({ message: error.message, StatusCode: 6001 });
     }
 };
-module.exports = { signup, login, getAllUsers, forgetPassword, verifyOtp, resetPassword };
+
+const refreshToken = async (req, res) => {
+    try {
+        //verify current refresh token sent from frontend
+        const userId = verifyRefreshToken(req.cookies.refreshToken);
+
+        consola.log(req.cookies.refreshToken, "cookies*************");
+        consola.log(userId, "refresh token+++++++++++++");
+        // const userId = verifyRefreshToken(req.body.refresh_token);
+
+        if (!userId)
+            return res.status(401).json({ StatusCode: 6001, message: "Refresh token expired" });
+
+        const accessToken = generateAccessToken(userId);
+        const refreshToken = generateRefreshToken(userId);
+
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+        });
+
+        res.json({ access_token: accessToken });
+    } catch (error) {
+        return res.status(500).json({ message: error.message, StatusCode: 6001 });
+    }
+};
+module.exports = {
+    signup,
+    login,
+    getAllUsers,
+    forgetPassword,
+    verifyOtp,
+    resetPassword,
+    refreshToken,
+};

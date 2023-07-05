@@ -4,6 +4,7 @@ const cors = require("cors");
 require("dotenv").config();
 const cloudinary = require("cloudinary");
 const fileupload = require("express-fileupload");
+const cookieParser = require("cookie-parser");
 
 //routes
 const movieRouter = require("./routes/moviesRouter.js");
@@ -12,15 +13,22 @@ const userRouter = require("./routes/userRouter");
 
 //functions
 const { connectDb } = require("./config/db");
-const sessionMiddleware = require("./utils/session.js");
+// const sessionMiddleware = require("./utils/session.js");
 
 const PORT = process.env.PORT || 5005;
 const app = express();
 
 //middlewares
-app.use(sessionMiddleware);
-app.use(cors());
+// app.use(sessionMiddleware);
+
+const options = {
+    origin: "http://127.0.0.1:5173",
+    credentials: true,
+};
+app.use(cors(options));
 app.use(express.json());
+
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(fileupload({ useTempFiles: true }));
 
