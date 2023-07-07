@@ -4,7 +4,6 @@ const User = require("../models/userModel");
 //packages
 const cloudinary = require("cloudinary");
 const nodemailer = require("nodemailer");
-const consola = require("consola");
 const fs = require("fs");
 const path = require("path");
 
@@ -164,9 +163,9 @@ const forgetPassword = async (req, res) => {
 
         transporter.verify(function (error, success) {
             if (error) {
-                consola.error(error.message);
+                console.error(error.message);
             } else {
-                consola.log("Server is ready to take our messages");
+                console.log("Server is ready to take our messages");
             }
         });
 
