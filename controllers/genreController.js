@@ -16,7 +16,7 @@ const addGenre = async (req, res) => {
         const genres = await Genre.find();
         res.status(201).json({ message: `added new genre: ${title}`, genres: genres });
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(500).json({ message: "Something went wrong" });
     }
 };
 
@@ -29,7 +29,7 @@ const deleteGenre = async (req, res) => {
         const genre = await Genre.findByIdAndDelete(_id);
         res.status(200).json({ message: `genre: ${genre} deleted successfully` });
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(500).json({ message: "Something went wrong" });
     }
 };
 
@@ -41,7 +41,7 @@ const fetchAllGenres = async (req, res) => {
         }
         return res.status(200).json({ message: "Success", genres: genres });
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(500).json({ message: "Something went wrong" });
     }
 };
 
@@ -65,7 +65,7 @@ const editGenre = async (req, res) => {
 
         return res.status(200).json({ message: "Success", genres: genres });
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(500).json({ message: "Something went wrong" });
     }
 };
 

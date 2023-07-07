@@ -60,12 +60,11 @@ const signup = async (req, res) => {
 
         return res.status(201).json({ message: "Account created successfully", StatusCode: 6000 });
     } catch (error) {
-        res.status(400).json({ message: error.message, StatusCode: 6001 });
+        res.status(400).json({ message: "Something went wrong", StatusCode: 6001 });
     }
 };
 
 const login = async (req, res) => {
-    consola.log(req.body.email, "email----------");
     try {
         const { email, password } = req.body;
         if (!email || !password) {
@@ -103,8 +102,7 @@ const login = async (req, res) => {
             refresh_token: refreshToken,
         });
     } catch (error) {
-        consola.log(error);
-        res.status(400).json({ message: error.message, StatusCode: 6001 });
+        res.status(400).json({ message: "Something went wrong", StatusCode: 6001 });
     }
 };
 
@@ -148,7 +146,6 @@ const forgetPassword = async (req, res) => {
 
         const username = user.username;
 
-        console.log(username, "username");
         const templatePath = path.join(__dirname, "../mail-template/forget-password.html");
         const template = fs.readFileSync(templatePath, "utf-8");
         let emailContent = template
@@ -182,12 +179,12 @@ const forgetPassword = async (req, res) => {
 
         transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
-                return res.status(400).json({ message: error.message });
+                return res.status(400).json({ message: "Something went wrong" });
             }
             return res.status(200).json({ StatusCode: 6000, message: `OTP sent to ${email}` });
         });
     } catch (error) {
-        res.status(400).json({ message: error.message, StatusCode: 6001 });
+        res.status(400).json({ message: "Something went wrong", StatusCode: 6001 });
     }
 };
 
@@ -201,16 +198,9 @@ const verifyOtp = async (req, res) => {
 
         const user = await User.findOne({ email: email });
 
-        // Compare the user-entered OTP with the stored OTP in the session
-
-        // consola.error(otp, "user enetered otp-----------------");
-        // consola.error(user.otp, "stored otp++++++++++++++++++++");
-
         if (otp !== user.otp.otp) {
             return res.status(400).json({ message: "Invalid OTP", StatusCode: 6001 });
         }
-
-        // req.session.otpVerified = true;
 
         res.status(200).json({ StatusCode: 6000, message: "OTP Verified" });
         user.otp = {
@@ -218,9 +208,8 @@ const verifyOtp = async (req, res) => {
             otp_verified: true,
         };
         await user.save();
-        // req.session.generatedOTP = null;
     } catch (error) {
-        res.status(500).json({ message: error.message, StatusCode: 6001 });
+        res.status(500).json({ message: "Something went wrong", StatusCode: 6001 });
     }
 };
 
@@ -249,7 +238,7 @@ const resetPassword = async (req, res) => {
             return res.status(400).json({ message: "otp unverified" });
         }
     } catch (error) {
-        return res.status(500).json({ message: error.message, StatusCode: 6001 });
+        return res.status(500).json({ message: "Something went wrong", StatusCode: 6001 });
     }
 };
 
@@ -257,10 +246,6 @@ const refreshToken = async (req, res) => {
     try {
         //verify current refresh token sent from frontend
         const userId = verifyRefreshToken(req.cookies.refreshToken);
-
-        consola.log(req.cookies.refreshToken, "cookies*************");
-        consola.log(userId, "refresh token+++++++++++++");
-        // const userId = verifyRefreshToken(req.body.refresh_token);
 
         if (!userId)
             return res.status(401).json({ StatusCode: 6001, message: "Refresh token expired" });
@@ -276,7 +261,7 @@ const refreshToken = async (req, res) => {
 
         res.json({ access_token: accessToken });
     } catch (error) {
-        return res.status(500).json({ message: error.message, StatusCode: 6001 });
+        return res.status(500).json({ message: "Something went wrong", StatusCode: 6001 });
     }
 };
 module.exports = {

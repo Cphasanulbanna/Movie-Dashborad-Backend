@@ -5,14 +5,10 @@ const checkAuth = async (req, res, next) => {
     try {
         let token = req.headers.authorization;
 
-        console.log(token, "passed token-----");
-
         if (!token) {
             return res.status(401).json({ message: "Access denied" });
         }
         token = token.split(" ")[1];
-
-        console.log(token, "splitted token////////");
 
         const tokenValid = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
         req.userId = tokenValid._id;
@@ -28,7 +24,7 @@ const checkAuth = async (req, res, next) => {
         if (error instanceof jwt.JsonWebTokenError) {
             return res.status(401).json({ message: "Access denied: Invalid token" });
         }
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: "Something went wronng" });
     }
 };
 

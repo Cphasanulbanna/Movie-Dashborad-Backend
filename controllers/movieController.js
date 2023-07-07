@@ -42,7 +42,7 @@ const addMovie = async (req, res) => {
         const movie = await Movie.create(newMovie);
         res.status(201).json({ message: "added new movie", movie: movie });
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(500).json({ message: "Something went wrong" });
     }
 };
 
@@ -87,45 +87,8 @@ const fetchMovies = async (req, res) => {
         };
 
         res.status(200).json(response);
-
-        // const totalMovies = await Movie.countDocuments();
-        // const totalPages = Math.ceil(totalMovies / moviesPerPage);
-
-        // const paginatedData = await Movie.find()
-        //     .populate("genre")
-        //     .skip(page * moviesPerPage)
-        //     .limit(moviesPerPage)
-        //     .select("genre name poster year rating description leadactor");
-        // const regex = new RegExp(q, "i");
-        // if (q) {
-        //     const movieCount = await Movie.find({ name: { $regex: regex } });
-        //     const filteredMovies = await Movie.find({ name: { $regex: regex } })
-        //         .populate("genre")
-        //         .skip(page * moviesPerPage)
-        //         .limit(moviesPerPage);
-
-        //     const total = Math.ceil(movieCount.length / moviesPerPage);
-
-        //     return res.status(200).json({
-        //         message: "Success",
-        //         moviesList: filteredMovies,
-        //         total_movies: totalMovies,
-        //         total_pages: total,
-        //     });
-        // }
-
-        // if (!paginatedData.length) {
-        //     return res.status(400).json({ message: "Movies not found!" });
-        // }
-
-        // res.status(200).json({
-        //     message: "Success",
-        //     moviesList: paginatedData,
-        //     total_movies: totalMovies,
-        //     total_pages: totalPages,
-        // });
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(500).json({ message: "Something went wrong" });
     }
 };
 
@@ -138,7 +101,7 @@ const fetchSingleMovie = async (req, res) => {
         }
         res.status(200).json({ message: "Success", movie: movie });
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(500).json({ message: "Something went wrong" });
     }
 };
 
@@ -155,7 +118,7 @@ const fetchMoviesWithGenre = async (req, res) => {
         }
         res.status(200).json({ message: "Success", moviesList: movies });
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(500).json({ message: "Something went wrong" });
     }
 };
 
@@ -218,7 +181,7 @@ const editMovie = async (req, res) => {
         await movie.save();
         res.status(200).json({ message: "Movie updated successfully", movie: movie });
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(500).json({ message: "Something went wrong" });
     }
 };
 
@@ -238,22 +201,9 @@ const deleteMovie = async (req, res) => {
 
         res.status(200).json({ StatusCode: 6000, message: "movie deleted successfully" });
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(500).json({ message: "Something went wrong" });
     }
 };
-
-// const insertMovies = async () => {
-//     try {
-//         const docs = await Movie.insertMany(movies);
-//         return Promise.resolve(docs);
-//     } catch (error) {
-//         return Promise.reject(error);
-//     }
-// };
-
-// insertMovies()
-//     .then((docs) => console.log(docs))
-//     .catch((error) => console.log(error));
 
 module.exports = {
     addMovie,
