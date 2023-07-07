@@ -22,11 +22,11 @@ const app = express();
 //     credentials: true,
 // };
 
-const options = {
-    origin: "https://movie-dashboard-2weo.onrender.com/",
-    credentials: true,
-};
-app.use(cors(options));
+// const options = {
+//     origin: "https://movie-dashboard-2weo.onrender.com/",
+//     credentials: true,
+// };
+app.use(cors());
 app.use(express.json());
 
 app.use(cookieParser());
