@@ -17,8 +17,13 @@ const { connectDb } = require("./config/db");
 const PORT = process.env.PORT || 5005;
 const app = express();
 
+// const options = {
+//     origin: "http://127.0.0.1:5173",
+//     credentials: true,
+// };
+
 const options = {
-    origin: "http://127.0.0.1:5173",
+    origin: "https://movie-dashboard-2weo.onrender.com/",
     credentials: true,
 };
 app.use(cors(options));
