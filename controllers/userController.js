@@ -94,6 +94,7 @@ const login = async (req, res) => {
             StatusCode: 6000,
             message: "Login success",
             _id: user.id,
+            role: user.role,
             username: user.username,
             email: user.email,
             profile_pic: user.profilePic,
