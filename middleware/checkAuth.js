@@ -16,7 +16,7 @@ const checkAuth = async (req, res, next) => {
         // Check if the user exists in the database
         const user = await User.findById(req.userId);
         if (!user) {
-            return res.status(401).json({ message: "Access denied: User not found" });
+            return res.status(404).json({ message: "Access denied: User not found" });
         }
         next();
     } catch (error) {

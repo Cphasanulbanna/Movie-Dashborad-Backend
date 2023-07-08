@@ -73,7 +73,7 @@ const login = async (req, res) => {
         }
         const user = await User.findOne({ email: email });
         if (!user) {
-            return res.status(401).json({ message: "User not found", StatusCode: 6001 });
+            return res.status(404).json({ message: "User not found", StatusCode: 6001 });
         }
 
         const validPassword = await comparePassword(password, user.password);
