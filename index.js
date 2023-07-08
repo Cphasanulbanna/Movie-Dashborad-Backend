@@ -22,8 +22,14 @@ const app = express();
 //     credentials: true,
 // };
 
+// const options = {
+//     origin: "https://movie-dashboard-2weo.onrender.com",
+//     credentials: true,
+// };
+
+//vercel
 const options = {
-    origin: "https://movie-dashboard-2weo.onrender.com",
+    origin: "https://movie-dashborad-react-zkey.vercel.app",
     credentials: true,
 };
 app.use(cors(options));
