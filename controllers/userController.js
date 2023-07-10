@@ -147,11 +147,9 @@ const forgetPassword = async (req, res) => {
 
         const username = user.username;
 
-        const templatePath = path.join(__dirname, "../mail-template/forget-password.html");
+        const templatePath = path.join(__dirname, "../mail-template/reset-password-template.html");
         const template = fs.readFileSync(templatePath, "utf-8");
-        let emailContent = template
-            .replace("{{generatedotp}}", generatedOTP)
-            .replace("{{username}}", username);
+        let emailContent = template.replace("{{otp}}", generatedOTP);
 
         let transporter = nodemailer.createTransport({
             host: "smtp.gmail.com",
