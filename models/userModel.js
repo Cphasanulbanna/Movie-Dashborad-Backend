@@ -43,6 +43,13 @@ const userSchema = new mongoose.Schema(
                 default: false,
             },
         },
+        watchLaterMovies: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Movie",
+                unique: true,
+            },
+        ],
     },
     { timestamps: true }
 );

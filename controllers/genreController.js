@@ -35,7 +35,7 @@ const deleteGenre = async (req, res) => {
 
 const fetchAllGenres = async (req, res) => {
     try {
-        const genres = await Genre.find();
+        const genres = await Genre.find().sort({ title: "asc" });
         if (!genres.length) {
             return res.status(404).json({ message: "Genres not found" });
         }

@@ -67,6 +67,7 @@ const fetchMovies = async (req, res) => {
             .in([...rating])
             .where("genre")
             .in([...genre])
+            .sort({ name: "ascending" })
             .skip(page * limit)
             .limit(limit)
             .populate("genre");
@@ -164,6 +165,8 @@ const editMovie = async (req, res) => {
             });
             movie.gallery = galleryImages ? galleryImages : movie.galleryImages;
         }
+
+        console.log(leadactor, "actor");
 
         //updating movie
         movie.name = name ? name : movie.name;

@@ -1,5 +1,6 @@
 //model
 const User = require("../models/userModel");
+const Movie = require("../models/movieModel");
 
 //packages
 const cloudinary = require("cloudinary");
@@ -93,7 +94,7 @@ const login = async (req, res) => {
         res.status(200).json({
             StatusCode: 6000,
             message: "Login success",
-            _id: user.id,
+            id: user.id,
             role: user.role,
             username: user.username,
             email: user.email,
@@ -264,6 +265,52 @@ const refreshToken = async (req, res) => {
         return res.status(500).json({ message: "Something went wrong", StatusCode: 6001 });
     }
 };
+
+const addToWatchLater = async (req, res) => {
+    try {
+        const { id, email } = req.body;
+        if (!id) {
+            return res.status(404).json({ message: "movie is is required" });
+        }
+        const user = await User.findOneAndUpdate(
+            { email: email },
+            { $push: { watchLaterMovies: id } },
+            { new: true }
+        );
+        if (!user) {
+            return res.status(404).json({ message: "Usser not fount" });
+        }
+
+        res.status(200).json({ message: "Movie added to watch later" });
+    } catch (error) {
+        res.status(500).json({ message: "Something went wrong" });
+    }
+};
+
+const getAllWatchLaterMovies = async (req, res) => {
+    try {
+        const userId = req.userId;
+        if (!userId) {
+            return res.status(404).json({ message: "User ID not found" });
+        }
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        const movieIds = user.watchLaterMovies;
+
+        if (!movieIds.length) {
+            return res.status(404).json({ message: "No movies found" });
+        }
+
+        const movies = await Movie.find({ _id: { $in: movieIds } }).populate("genre");
+        res.status(200).json({ message: "Success", movies });
+    } catch (error) {
+        res.status(500).json({ message: "Something went wrong" });
+    }
+};
 module.exports = {
     signup,
     login,
@@ -272,4 +319,6 @@ module.exports = {
     verifyOtp,
     resetPassword,
     refreshToken,
+    addToWatchLater,
+    getAllWatchLaterMovies,
 };
